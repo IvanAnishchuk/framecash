@@ -1,0 +1,63 @@
+[    1873ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:5173/favicon.ico:0
+[    5494ms] [INFO] [worker] [00.001] tor-js worker: using 1 gateway(s), log level info @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5591ms] [INFO] [worker] [00.099] Waiting for client @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5638ms] [INFO] [worker] [00.149] Bootstrapping... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5649ms] [INFO] [worker] [00.160] [tor_js] Creating TorClient @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5659ms] [WARNING] [worker] [00.169] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[    5662ms] [WARNING] [worker] [00.172] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[    5667ms] [INFO] [worker] [00.173] [tor_js] Initializing JS storage... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5735ms] [INFO] [worker] [00.246] [tor_js::fast_bootstrap] Fast bootstrap: fetching bootstrap.zip... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[    5736ms] [INFO] [worker] [00.247] Fast bootstrap: fetching bootstrap.zip.zst... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20745ms] [WARNING] [worker] [15.256] [tor_js] Fast bootstrap failed (continuing normally): JsValue(Error: all gateways failed for /bootstrap.zip.zst: 152.236.3.22:12298:uEiCH0VdbhryzJcMtCfB0vLA4sOvHdQ4hq5w7CopcwU59bQ: dial 152.236.3.22:12298:uEiCH0VdbhryzJcMtCfB0vLA4sOvHdQ4hq5w7CopcwU59bQ: timed out
+Error: all gateways failed for /bootstrap.zip.zst: 152.236.3.22:12298:uEiCH0VdbhryzJcMtCfB0vLA4sOvHdQ4hq5w7CopcwU59bQ: dial 152.236.3.22:12298:uEiCH0VdbhryzJcMtCfB0vLA4sOvHdQ4hq5w7CopcwU59bQ: timed out
+    at ArtiSocketProvider.gatewayFetch (blob:null/d1e05551-1ff6-47bd-8f30-b8599fe6b9ae:2384:13)
+    at async blob:null/d1e05551-1ff6-47bd-8f30-b8599fe6b9ae:2443:23) @ http://localhost:5173/@vite/client:363
+[   20745ms] [INFO] [worker] [15.256] [tor_js] Storage configured (state + directory cache) @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20747ms] [INFO] [worker] [15.258] [tor_memquota::mtracker] Memory quota tracking initialised, max = 1.00 GiB, low_water = 768 MiB @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20747ms] [INFO] [worker] [15.258] [arti_client::client] Running without a keystore (WASM) @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20747ms] [INFO] [worker] [15.259] [tor_js] TorClient created (unbootstrapped) @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20747ms] [INFO] [worker] [15.259] [tor_js] Bootstrapping Tor client... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20760ms] [INFO] [worker] [15.271] [tor_dirmgr] Didn't get usable directory from cache. @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   20769ms] [INFO] [worker] [15.280] [tor_dirmgr::bootstrap] 1: Looking for a consensus., attempt = 1 @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[   71979ms] [WARNING] [worker] [01:06.490] [tor_circmgr::mgr] Reached circuit build retry limit, exiting... @ http://localhost:5173/@vite/client:363
+[   71980ms] [WARNING] [worker] [01:06.490] [tor_circmgr::mgr] Request failed @ http://localhost:5173/@vite/client:363
+[   71981ms] [WARNING] [worker] [01:06.491] [tor_dirmgr::bootstrap] error while downloading, error = Problem downloading directory object @ http://localhost:5173/@vite/client:363
+[   72981ms] [INFO] [worker] [01:07.492] [tor_dirmgr::bootstrap] 2: Looking for a consensus., attempt = 1 @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  120591ms] [WARNING] [nym-anon-rpc idb-shim] IndexedDB is denied in this context; using in-memory storage (client identity is ephemeral per boot) @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:3289
+[  121097ms] [WARNING] using deprecated parameters for the initialization function; pass a single object instead @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5978
+[  121134ms] [LOG] [smolmix] starting tunnel... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  121159ms] [LOG] this new storage will not use any encryption @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  122122ms] [LOG] attempting to load cryptographic keys... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  122142ms] [LOG] Websocket to "wss://bulgaria.nymgateway.com:9001/" is now open! @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  123040ms] [LOG] finished registration with gateway 4sYeT6KAFy7RpWSyT51WFMMg1nnzbsFHr9ypCV5YKin4 @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  123046ms] [LOG] attempting to load cryptographic keys... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  123052ms] [LOG] attempting to load cryptographic keys... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  124060ms] [LOG] Websocket to "wss://bulgaria.nymgateway.com:9001/" is now open! @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  124806ms] [LOG] [smolmix] no IPR specified, auto-discovering... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  126250ms] [LOG] [smolmix] auto-discovered 620 IPR candidate(s); preferred v1.43.0: 4CbtT44tSh9cXHwYBEP3sb9B47ch5gtGuxmhtdYnrTSk.DpEbpNQgenmYHGxUsmRa37NgzXdDddvvUAsVXmdSwM9z@FE6qX4c57NqjCnRtTcESkdC3oEUfZbv9Z3ATTHKKnA3b @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  126255ms] [LOG] [smolmix] connecting to IPR 4CbtT44tSh9cXHwYBEP3sb9B47ch5gtGuxmhtdYnrTSk.DpEbpNQgenmYHGxUsmRa37NgzXdDddvvUAsVXmdSwM9z@FE6qX4c57NqjCnRtTcESkdC3oEUfZbv9Z3ATTHKKnA3b... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  126256ms] [LOG] [ipr] sending connect handshake... @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  128452ms] [LOG] [smolmix] IPR connected: 4CbtT44tSh9cXHwYBEP3sb9B47ch5gtGuxmhtdYnrTSk.DpEbpNQgenmYHGxUsmRa37NgzXdDddvvUAsVXmdSwM9z@FE6qX4c57NqjCnRtTcESkdC3oEUfZbv9Z3ATTHKKnA3b (in 2.197s) @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  128454ms] [LOG] [smolmix] tunnel ready @ blob:null/b5ad46f6-04e6-4509-bf1f-eca4982d93f3:5111
+[  128460ms] [INFO] [worker] nym tunnel ready @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  280917ms] [ERROR] [worker] acceptCall failed: worker closed @ http://localhost:5173/@vite/client:363
+[  536085ms] [INFO] [worker] [00.000] tor-js worker: using 1 gateway(s), log level info @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  536175ms] [INFO] [worker] [00.088] Waiting for client @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539008ms] [INFO] [worker] [00.000] tor-js worker: using 1 gateway(s), log level info @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539075ms] [INFO] [worker] [00.069] Waiting for client @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539110ms] [INFO] [worker] [00.104] Bootstrapping... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539119ms] [INFO] [worker] [00.113] [tor_js] Creating TorClient @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539125ms] [WARNING] [worker] [00.119] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[  539127ms] [WARNING] [worker] [00.120] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[  539128ms] [INFO] [worker] [00.121] [tor_js] Initializing JS storage... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539150ms] [INFO] [worker] [00.144] [tor_js::fast_bootstrap] Fast bootstrap: fetching bootstrap.zip... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  539150ms] [INFO] [worker] [00.145] Fast bootstrap: fetching bootstrap.zip.zst... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549730ms] [INFO] [worker] [00.000] tor-js worker: using 1 gateway(s), log level info @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549806ms] [INFO] [worker] [00.085] Waiting for client @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549851ms] [INFO] [worker] [00.131] Bootstrapping... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549870ms] [INFO] [worker] [00.149] [tor_js] Creating TorClient @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549880ms] [WARNING] [worker] [00.159] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[  549883ms] [WARNING] [worker] [00.161] [tor_memquota::config] Unable to get the total available memory. Using a constant max instead: total available memory is unavailable @ http://localhost:5173/@vite/client:363
+[  549887ms] [INFO] [worker] [00.163] [tor_js] Initializing JS storage... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549920ms] [INFO] [worker] [00.200] [tor_js::fast_bootstrap] Fast bootstrap: fetching bootstrap.zip... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420
+[  549921ms] [INFO] [worker] [00.201] Fast bootstrap: fetching bootstrap.zip.zst... @ http://localhost:5173/node_modules/.vite/deps/@anon-rpc_browser-harness.js?v=9bd5ab51:2420

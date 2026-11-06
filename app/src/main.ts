@@ -175,7 +175,17 @@ async function pay() {
   const amount = parseEther($<HTMLInputElement>("payamt").value || "0");
   const payment = await preparePayment(p, wallet, to, amount, await feeNow(chain.node));
   saveLocal("wallet", wallet);
-  const hash = await submitPayment(chain, payment);
+  let hash: Hex;
+  try {
+    hash = await submitPayment(chain, payment);
+  } catch (e) {
+    // Known (F9): the Nym worker drops the request's content-type, which Skandha requires.
+    // The note is not spent: the tx never entered the mempool.
+    if (/Unsupported Media Type/.test((e as Error).message)) {
+      throw new Error(`${route.id} dropped the request's content-type, so Skandha refused the payment. The note is unspent. Reads work over ${route.id}; to pay, use another route.`);
+    }
+    throw e;
+  }
   say(`Sent ${hash.slice(0, 18)}… to the alt mempool, with the pool as sender. Waiting for inclusion…`);
   const r = await waitPayment(chain, hash);
   const ok = (r.frameReceipts ?? []).every((f: any) => f.status === "0x1");

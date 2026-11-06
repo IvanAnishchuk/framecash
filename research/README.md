@@ -20,8 +20,8 @@ Each verdict links its evidence. See [`CLAUDE.md`](../CLAUDE.md) for what counts
 | [F5](feasibility/f05-cre-write-to-1337.md) | Can a CRE simulation write to chain 1337? | Whether the Chainlink track holds | open |
 | [F6](feasibility/f06-cre-log-trigger-frame-blocks.md) | Does the CRE log trigger work on blocks with type-`0x06` txs? | Whether the mint can watch the devnet | open |
 | [F7](feasibility/f07-cre-external-leg.md) | What satisfies CRE's "external API/system" requirement? | Whether the workflow needs another piece | open |
-| [F8](feasibility/f08-anon-rpc-reaches-devnet.md) | Can tor-js or Nym reach the `altmempool.wtf` hosts? | Whether the Anon-RPC track holds | open |
-| [F9](feasibility/f09-anon-rpc-frame-send.md) | Does the Anon-RPC worker pass `eth_sendFrameTransaction` through? | Whether payments are network-private | open |
+| [F8](feasibility/f08-anon-rpc-reaches-devnet.md) | Can tor-js or Nym reach the `altmempool.wtf` hosts? | Whether the Anon-RPC track holds | works (Nym); tor-js unknown |
+| [F9](feasibility/f09-anon-rpc-frame-send.md) | Does the Anon-RPC worker pass `eth_sendFrameTransaction` through? | Whether payments are network-private | fails over Nym (header dropped) |
 | [F10](feasibility/f10-ensv2-on-sepolia.md) | Is ENSv2 deployed and usable on Sepolia? | Whether the ENS integration is worth it | open |
 | [F11](feasibility/f11-eac-record-scoped-roles.md) | Can ENSv2 EAC roles be scoped to specific records? | ENSv2-central vs cosmetic | open |
 

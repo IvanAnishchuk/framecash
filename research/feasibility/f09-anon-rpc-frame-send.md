@@ -1,6 +1,7 @@
 # F9. Does the Anon-RPC worker pass `eth_sendFrameTransaction` through?
 
-**Verdict:** open
+**Verdict:** fails over Nym, with a known cause (probe, 2026-11-07). The harness passes the
+method; the Nym worker drops the request's `content-type`, and Skandha refuses the request.
 
 ## Why it matters
 
@@ -18,4 +19,20 @@ as a deliberate exclusion, which weakens the design's main privacy claim.
 
 ## Findings
 
+- No method allowlist anywhere on the path: through the harness with the passthrough
+  worker, Skandha admitted the payment and it was included (block 10430).
+- Over Nym, Skandha answered `-32600 Unsupported Media Type: undefined`. The harness
+  serializes request headers (`dist/host.js` 0.4.0, lines 243–253), so the header is lost
+  in the Nym worker or at its exit. ethrex ignores the missing header, which is why reads
+  and deposits work over Nym.
+- tor-js could not be tried (F8).
+
+**What the design does now.** Reads and the deposit go over Nym. The payment send over Nym
+fails, so the app's default anonymizing route cannot pay today. The app says so, and the
+README lists the payment send as the open exclusion, with the cause. Fixes, cheapest first:
+a working tor-js gateway; a header fix in the Nym worker (to report to Nym); Skandha
+accepting a body without `content-type` (to ask the alt-mempool team).
+
 ## Evidence
+
+- Probe: [`probes/f09-anon-rpc-frame-send/`](../../probes/f09-anon-rpc-frame-send/README.md)
