@@ -1,0 +1,12 @@
+{
+  "name": "probe-f03-single-use-nonce-keys",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0 OR Apache-2.0 OR WTFPL",
+  "scripts": {
+    "probe": "forge build --quiet --root ../f04-signer-not-sender && node probe.ts"
+  },
+  "dependencies": {
+    "viem": "^2.57.7"
+  }
+}
