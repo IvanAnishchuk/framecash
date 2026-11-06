@@ -16,7 +16,7 @@ Each verdict links its evidence. See [`CLAUDE.md`](../CLAUDE.md) for what counts
 | [F1](feasibility/f01-eip2537-on-devnet.md) | Is EIP-2537 (BLS12-381 precompiles) live on the alt-mempool devnet? | Whether the project runs there at all | open |
 | [F2](feasibility/f02-staked-validation-budget.md) | Does Skandha admit ~180k of validation gas for a staked sender? | Whether the pool can pay its own gas | open |
 | [F3](feasibility/f03-single-use-nonce-keys.md) | Are EIP-8250 single-use nonce keys live? | Nullifier design: nonce key or `spent[]` | open |
-| [F4](feasibility/f04-signer-not-sender.md) | Can `self_verify` approve on a SECP256K1 signer that isn't `tx.sender`? | How the note key binds to the sig hash | open |
+| [F4](feasibility/f04-signer-not-sender.md) | Can `self_verify` approve on a SECP256K1 signer that isn't `tx.sender`? | How the note key binds to the sig hash | works |
 | [F5](feasibility/f05-cre-write-to-1337.md) | Can a CRE simulation write to chain 1337? | Whether the Chainlink track holds | open |
 | [F6](feasibility/f06-cre-log-trigger-frame-blocks.md) | Does the CRE log trigger work on blocks with type-`0x06` txs? | Whether the mint can watch the devnet | open |
 | [F7](feasibility/f07-cre-external-leg.md) | What satisfies CRE's "external API/system" requirement? | Whether the workflow needs another piece | open |

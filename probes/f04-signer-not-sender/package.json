@@ -1,0 +1,16 @@
+{
+  "name": "probe-f04-signer-not-sender",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0 OR Apache-2.0 OR WTFPL",
+  "scripts": {
+    "probe": "forge build --quiet && tsx probe.ts"
+  },
+  "dependencies": {
+    "@ethereumjs/rlp": "^10.1.3",
+    "viem": "^2.57.7"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
+}
