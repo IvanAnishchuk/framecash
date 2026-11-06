@@ -253,6 +253,22 @@ export async function submitPayment(chain: Chain, p: Payment): Promise<Hex> {
   return chain.mempool("eth_sendFrameTransaction", [toWire(p.tx)]);
 }
 
+/**
+ * Wait for a frame tx through Skandha's own status, then read the receipt. Skandha can admit
+ * a tx and later drop it ("relayed 4 times without being included in a block"); a receipt
+ * poll alone would wait out its timeout without saying so.
+ */
+export async function waitPayment(chain: Chain, hash: Hex, timeoutMs = 180_000): Promise<any> {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    const s = await chain.mempool("skandha_frameTransactionStatus", [hash]);
+    if (s?.status === "OnChain") return waitReceipt(chain.node, hash);
+    if (s?.status === "Cancelled") throw new Error(`Skandha dropped ${hash}: ${s.reason ?? "no reason given"}. The note is unspent; pay again.`);
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+  throw new Error(`${hash} not included within ${timeoutMs / 1000} s`);
+}
+
 export async function waitReceipt(rpc: Rpc, hash: Hex, timeoutMs = 180_000): Promise<any> {
   const until = Date.now() + timeoutMs;
   while (Date.now() < until) {

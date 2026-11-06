@@ -24,6 +24,7 @@ import {
   readPool,
   submitPayment,
   sync,
+  waitPayment,
   waitReceipt,
 } from "../../lib/src/index.ts";
 
@@ -230,7 +231,7 @@ async function pay(payee: Hex, amountEth: string) {
   const hash = await submitPayment(chain, p);
   console.log(`payment ${hash}${hash === p.hash ? "" : ` (local hash ${p.hash})`} from note ${p.note.index} (${formatEther(BigInt(p.note.denom))} ETH)`);
   console.log(`         sender = pool ${info.address}, admitted by Skandha; explorer ${EXPLORER}`);
-  const r = await waitReceipt(chain.node, hash);
+  const r = await waitPayment(chain, hash);
   const frames = (r.frameReceipts ?? []).map((f: any) => `${f.status}${f.gasUsed ? ` gas ${JSON.stringify(f.gasUsed)}` : ""}`);
   console.log(`mined in block ${BigInt(r.blockNumber)}, status ${r.status}, payer ${r.payer}, frames: ${frames.join(" | ")}`);
   return r;

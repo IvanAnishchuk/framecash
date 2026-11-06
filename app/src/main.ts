@@ -14,6 +14,7 @@ import {
   readPool,
   submitPayment,
   sync,
+  waitPayment,
   waitReceipt,
 } from "../../lib/src/index.ts";
 import { ROUTES, type Route, type RouteId, openRoute } from "./anon.ts";
@@ -176,7 +177,7 @@ async function pay() {
   saveLocal("wallet", wallet);
   const hash = await submitPayment(chain, payment);
   say(`Sent ${hash.slice(0, 18)}… to the alt mempool, with the pool as sender. Waiting for inclusion…`);
-  const r = await waitReceipt(chain.node, hash);
+  const r = await waitPayment(chain, hash);
   const ok = (r.frameReceipts ?? []).every((f: any) => f.status === "0x1");
   const link = h("a", "", "explorer");
   link.setAttribute("href", EXPLORER);
@@ -235,9 +236,14 @@ function wire() {
   sel.onchange = () => busy("Switching route", () => useRoute(sel.value as RouteId));
 }
 
+// tor-js is the default. ?route=nym (or passthrough, direct) picks another.
+const asked = new URLSearchParams(location.search).get("route") as RouteId | null;
+const start: RouteId = asked && asked in ROUTES ? asked : "tor-js";
+
 wire();
 render();
-busy("Starting Anon-RPC (tor-js)", async () => {
-  await useRoute("tor-js");
+$<HTMLSelectElement>("route").value = start;
+busy(`Starting Anon-RPC (${start})`, async () => {
+  await useRoute(start);
   await doSync();
 });
