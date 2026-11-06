@@ -1,0 +1,20 @@
+{
+  "name": "@framecash/app",
+  "private": true,
+  "type": "module",
+  "license": "CC0-1.0 OR Apache-2.0 OR WTFPL",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anon-rpc/browser-harness": "^0.4.0",
+    "viem": "^2.57.7"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.0.0"
+  }
+}
