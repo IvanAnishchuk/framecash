@@ -9,3 +9,5 @@ export * from "./frametx.ts";
 export * from "./ladder.ts";
 export * from "./notes.ts";
 export * from "./pool.ts";
+export * from "./client.ts";
+export * from "./mintsvc.ts";
