@@ -22,8 +22,8 @@ Each verdict links its evidence. See [`CLAUDE.md`](../CLAUDE.md) for what counts
 | [F7](feasibility/f07-cre-external-leg.md) | What satisfies CRE's "external API/system" requirement? | Whether the workflow needs another piece | unknown (ask Chainlink) |
 | [F8](feasibility/f08-anon-rpc-reaches-devnet.md) | Can tor-js or Nym reach the `altmempool.wtf` hosts? | Whether the Anon-RPC track holds | works (Nym); tor-js unknown |
 | [F9](feasibility/f09-anon-rpc-frame-send.md) | Does the Anon-RPC worker pass `eth_sendFrameTransaction` through? | Whether payments are network-private | fails over Nym (header dropped) |
-| [F10](feasibility/f10-ensv2-on-sepolia.md) | Is ENSv2 deployed and usable on Sepolia? | Whether the ENS integration is worth it | open |
-| [F11](feasibility/f11-eac-record-scoped-roles.md) | Can ENSv2 EAC roles be scoped to specific records? | ENSv2-central vs cosmetic | open |
+| [F10](feasibility/f10-ensv2-on-sepolia.md) | Is ENSv2 deployed and usable on Sepolia? | Whether the ENS integration is worth it | works (docs + live read) |
+| [F11](feasibility/f11-eac-record-scoped-roles.md) | Can ENSv2 EAC roles be scoped to specific records? | ENSv2-central vs cosmetic | works per docs (key-scoped, one resolver per user) |
 
 ## Prior art
 

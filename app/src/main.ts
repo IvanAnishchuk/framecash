@@ -1,5 +1,7 @@
-import { type Hex, formatEther, isAddress, parseEther } from "viem";
+import { type Hex, createPublicClient, custom, formatEther, isAddress, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia } from "viem/chains";
+import { normalize } from "viem/ens";
 import {
   type Chain,
   type PoolInfo,
@@ -18,7 +20,17 @@ import {
   waitReceipt,
 } from "../../lib/src/index.ts";
 import { ROUTES, type Route, type RouteId, openRoute } from "./anon.ts";
-import { CHAIN_ID, DEVNET_FUNDER, EXPLORER, FROM_BLOCK, MEMPOOL_URL, NODE_URL, POOL } from "./config.ts";
+import {
+  CHAIN_ID,
+  DEVNET_COIN_TYPE,
+  DEVNET_FUNDER,
+  EXPLORER,
+  FROM_BLOCK,
+  MEMPOOL_URL,
+  NODE_URL,
+  POOL,
+  SEPOLIA_RPC,
+} from "./config.ts";
 
 // ---------------------------------------------------------------------------------------
 // Device storage: the seed and a funding key. Nothing here has to reach anyone else.
@@ -168,10 +180,24 @@ async function doSync() {
   say(`${added.length} new notes${pending ? `, ${pending} deposit(s) waiting for the mint` : ""}`, "ok");
 }
 
+/**
+ * A payee is a 0x address or an ENS name. A name resolves on Sepolia (ENSv2) to its address
+ * for the devnet's coin type, and the lookup goes over the current Anon-RPC route.
+ */
+async function payee(input: string): Promise<Hex> {
+  if (isAddress(input)) return input;
+  if (!input.includes(".")) throw new Error("the payee must be a 0x address or an ENS name");
+  const sepoliaRpc = httpRpc(SEPOLIA_RPC, route.fetch, (m) => logCall("sepolia", m));
+  const ens = createPublicClient({ chain: sepolia, transport: custom({ request: ({ method, params }) => sepoliaRpc(method, params) }) });
+  const addr = await ens.getEnsAddress({ name: normalize(input), coinType: DEVNET_COIN_TYPE });
+  if (!addr) throw new Error(`${input} has no address for the devnet (coin type 0x${DEVNET_COIN_TYPE.toString(16)}) on ENSv2`);
+  say(`${input} → ${addr}`);
+  return addr;
+}
+
 async function pay() {
   const p = await getPool();
-  const to = $<HTMLInputElement>("payto").value.trim();
-  if (!isAddress(to)) throw new Error("the payee must be a 0x address");
+  const to = await payee($<HTMLInputElement>("payto").value.trim());
   const amount = parseEther($<HTMLInputElement>("payamt").value || "0");
   const payment = await preparePayment(p, wallet, to, amount, await feeNow(chain.node));
   saveLocal("wallet", wallet);
