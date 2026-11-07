@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>framecash</title>
+    <script type="module" crossorigin src="./assets/index-JW8tWYYn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CcWezr4d.css">
+  </head>
+  <body>
+    <header>
+      <h1>framecash</h1>
+      <p class="sub">eCash notes that pay their own gas. Every call goes through Anon-RPC.</p>
+      <div class="route">
+        <label for="route">Route</label>
+        <select id="route"></select>
+        <span id="routestatus" class="pill wait">starting…</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="card balance">
+        <div class="big" id="balance">0 ETH</div>
+        <div class="muted" id="notecount">0 notes</div>
+        <p id="msg" class="info"></p>
+        <p id="lasttx" class="muted small"></p>
+      </section>
+
+      <section class="card">
+        <h2>Add money</h2>
+        <p class="muted small">From your funding wallet <code id="funder"></code>. That deposit is public; the notes it buys are not linkable to it.</p>
+        <div class="row">
+          <input id="addamt" value="0.023" inputmode="decimal" aria-label="amount in ETH" />
+          <button id="add">Add money</button>
+          <button id="faucet" class="ghost">Get devnet ETH</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Pay</h2>
+        <p class="muted small">One frame transaction whose sender is the pool. No relayer, no funded fresh address.</p>
+        <div class="row">
+          <input id="payto" placeholder="0x address or ENS name" aria-label="payee" />
+          <input id="payamt" value="0.004" inputmode="decimal" aria-label="amount in ETH" class="short" />
+          <button id="pay">Pay</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Restore from seed</h2>
+        <div class="row">
+          <input id="seedin" placeholder="0x… 32-byte seed" aria-label="seed" />
+          <button id="restore">Restore</button>
+          <button id="showseed" class="ghost">Show my seed</button>
+          <button id="sync" class="ghost">Sync</button>
+        </div>
+        <p><code id="seedout" class="small"></code></p>
+      </section>
+
+      <section class="card">
+        <h2>Notes</h2>
+        <ul id="notes" class="notes"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Traffic</h2>
+        <p class="muted small" id="callcount">0 calls</p>
+        <ul id="calls" class="calls"></ul>
+      </section>
+
+      <footer class="muted small">Pool <code id="pooladdr"></code> on the EIP-8141 devnet (chain 1337).</footer>
+    </main>
+  </body>
+</html>
