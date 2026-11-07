@@ -253,6 +253,29 @@ async function restore(seed: Hex) {
   console.log(`restored ${added.length} notes from the seed, balance ${formatEther(balance(s.wallet))} ETH`);
 }
 
+/**
+ * Write workflow/.env (gitignored) for the CRE simulation: the same four mint scalars the
+ * local mint uses, and the mint EOA as the key that pays for the simulated write.
+ */
+async function workflowEnv() {
+  const names = ["SECRET_MINT_KEY_0_001", "SECRET_MINT_KEY_0_01", "SECRET_MINT_KEY_0_1", "SECRET_MINT_KEY_1"];
+  const sks = env("FRAMECASH_MINT_BLS").split(",");
+  const lines = [
+    "# Written by `node cli/src/main.ts workflow-env` from the root .env. Throwaway devnet keys.",
+    `CRE_ETH_PRIVATE_KEY=${mintEoaKey().slice(2)}`,
+    "CRE_TARGET=devnet-settings",
+    ...names.map((n, i) => `${n}=${sks[i]}`),
+  ];
+  fs.writeFileSync(path.join(ROOT, "workflow/.env"), `${lines.join("\n")}\n`);
+  const s = load();
+  const cfg = path.join(ROOT, "workflow/blindmint/config.devnet.json");
+  const json = JSON.parse(fs.readFileSync(cfg, "utf8"));
+  if (s.pool && json.blindMint.toLowerCase() !== s.pool.toLowerCase()) {
+    console.log(`note: config.devnet.json names ${json.blindMint}, the CLI state names ${s.pool}`);
+  }
+  console.log("wrote workflow/.env");
+}
+
 async function demo() {
   await init();
   await deploy();
@@ -281,6 +304,7 @@ const commands: Record<string, (...a: string[]) => Promise<unknown>> = {
   status,
   restore: (seed) => restore(seed as Hex),
   seed: async () => console.log(load().wallet.seed),
+  "workflow-env": workflowEnv,
   demo,
 };
 

@@ -1,0 +1,9 @@
+# CRE project settings.
+#
+# The mint watches FramePool on the EIP-8141 devnet and writes announcements back to it.
+# Chain 1337 is `geth-testnet` in chain-selectors (selector 3379446385462418246). The CLI
+# does not list it as supported, so every command here passes --allow-unknown-chains.
+devnet-settings:
+  rpcs:
+    - chain-name: geth-testnet
+      url: https://altmempool.forshtat.com

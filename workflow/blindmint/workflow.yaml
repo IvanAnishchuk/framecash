@@ -1,0 +1,9 @@
+# CRE workflow settings.
+
+devnet-settings:
+  user-workflow:
+    workflow-name: "framecash-mint-devnet"
+  workflow-artifacts:
+    workflow-path: "."
+    config-path: "./config.devnet.json"
+    secrets-path: "../secrets.yaml"
