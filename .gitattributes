@@ -1,0 +1,3 @@
+# Captures are kept exactly as fetched (CLAUDE.md), so git must not rewrite their line
+# endings. core.autocrlf=input would otherwise strip CRs on commit.
+research/sources/** -text
