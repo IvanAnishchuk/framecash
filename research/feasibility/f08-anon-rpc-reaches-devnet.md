@@ -1,7 +1,11 @@
 # F8. Can Anon-RPC's tor-js or Nym routes reach the `altmempool.wtf` hosts?
 
-**Verdict:** works over Nym (probe, 2026-11-07). tor-js: unknown, because its demo
-gateway was unreachable.
+**Verdict:** works over Nox and over Nym (probe, 2026-11-07). tor-js: unknown, because
+its demo gateway was unreachable. Nox is the app's default: `adopters.json5`'s `chainId`
+11155111 for Nox is where its specifier lives, "not the chain the anonymized fetch can
+reach". The design had misread it as a limit. Nox reached both devnet endpoints (ready in
+about 4 s, ~1.5 s per call). Nym later stopped carrying any request (three tunnels, all
+"ready", every fetch timed out at 00:33Z).
 
 ## Why it matters
 

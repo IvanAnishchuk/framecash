@@ -14,28 +14,29 @@ Built at ETHGlobal Mumbai (November 2026). The design record is
 
 ## Status, 2026-11-07
 
-**Working on the EIP-8141 devnet (chain 1337):** deposit, mint, pay with the pool as sender
-and payer, change minted back into notes, and restore from the seed alone.
+**Working on the EIP-8141 devnet (chain 1337), every call over the Nox mixnet:** deposit,
+CRE mint, pay with the pool as sender and payer, change minted back into notes by CRE, and
+restore from the seed alone.
 
-- **Pool:** `0xa6641b28a9e916b985326d9c1a394f3cfd946cfe`, staked 0.012 ETH in the devnet's
-  ERC-8421 staking registry.
-- **Admitted alt-mempool payments:**
-  - `0xe1984cd46fe86328d09be6ef22dd55bd2aa526a89d5e5f2ab6c7f440973be9c0` (block 10277,
-    CLI);
-  - `0x3fbd0b7edc1ed8a7be8794cda05ccd64cef00c88e6b4f977d3ed14be43e530cd` (block 10430,
-    from the browser app through the Anon-RPC harness).
+- **Pool:** `0x27c0e726879c4703d6cef2da49db818ba0abd007`, staked 0.012 ETH in the devnet's
+  ERC-8421 staking registry, minted by the CRE workflow.
+- **Payment from the browser app, every call over Nox:**
+  `0x8c7be807d1fc76e69a1b9b856d94aee26996b80c62a1990381a25b246d8f0410`, included in block
+  11030 with the pool as payer. The app's traffic list showed 43 calls, all via Nox.
+  Screenshots are in [`docs/screenshots/`](docs/screenshots/).
+- **Other admitted alt-mempool payments:**
+  - `0xe1984cd46fe86328d09be6ef22dd55bd2aa526a89d5e5f2ab6c7f440973be9c0`, block 10277, CLI.
+    Skandha's record says `outcome: included` and every rule `pass`
+    ([F2 probe](probes/f02-staked-validation-budget/README.md)).
+  - `0x134935cb0851a887ed9d5ae9fe7e11bc1d8727e984d994fb9f47715ecdf26545`, block 10745,
+    from a CRE-minted note.
 
   Look them up on <https://altmempoolexplorer.forshtat.com/>.
-- Skandha's admission record for the first one: `outcome: included`, every rule `pass`
-  ([`probes/f02-staked-validation-budget/`](probes/f02-staked-validation-budget/README.md)).
 
-What does not work yet, with the cause:
-
-| Gap | Cause | Next step |
-|---|---|---|
-| Payment send over Nym | The Nym worker drops the request's `content-type`; Skandha refuses it (`-32600`). Reads and deposits over Nym work. | Report to Nym; or a tor-js gateway that works ([F9](research/feasibility/f09-anon-rpc-frame-send.md)) |
-| tor-js | Its only public demo gateway timed out | Use a gateway from the anon-rpc team ([F8](research/feasibility/f08-anon-rpc-reaches-devnet.md)) |
-| ENS names | Pay resolves ENSv2 names on Sepolia; registering per-user names needs Sepolia ETH | Fund a Sepolia key ([F10](research/feasibility/f10-ensv2-on-sepolia.md), [F11](research/feasibility/f11-eac-record-scoped-roles.md)) |
+Anon-RPC routes: Nox carries everything. Nym carries reads and deposits but drops the
+`content-type` header that Skandha requires, so it cannot send a payment. tor-js's only
+public gateway was down. See [F8](research/feasibility/f08-anon-rpc-reaches-devnet.md) and
+[F9](research/feasibility/f09-anon-rpc-frame-send.md).
 
 **The mint is a Chainlink CRE workflow** (`workflow/`), run with `cre workflow simulate
 --broadcast --listen`. It signs in the confidential handler and writes announcements back
@@ -106,11 +107,11 @@ that figure as indicative.
 | `eth_getStorageAt(NONCE_MANAGER, …)` (is my note spent?) | your exact notes, next to your IP | Anon-RPC |
 | `eth_call` (pool keys, deposit state), `eth_chainId`, `eth_gasPrice` | little | Anon-RPC |
 | Deposit and faucet `eth_sendRawTransaction` | your IP next to an already public deposit | Anon-RPC |
-| Payment `eth_sendFrameTransaction` to Skandha | **your IP on the payment, the link the design exists to cut** | Anon-RPC. Fails over Nym today (see Status); passes through the harness |
+| Payment `eth_sendFrameTransaction` to Skandha | **your IP on the payment, the link the design exists to cut** | Anon-RPC: over Nox, included (block 11030). Nym drops the header Skandha needs |
 | ENS lookup on Sepolia | the name you pay | Anon-RPC |
 | Specifier read on mainnet | that this browser loads an anon-rpc worker | **Excluded**: the harness needs it once, before any worker exists |
 | Explorer link | opened by you | **Excluded** |
-| The CLI | everything | **Excluded**: operator and test tool. The Node harness gives its guest no WebAssembly, so tor-js and Nym cannot run there |
+| The CLI | everything | **Excluded**: operator and test tool. The Node harness gives its guest no WebAssembly, so tor-js, Nym and Nox cannot run there |
 
 The app's traffic list shows every call with its route. The route picker includes "direct
 (Anon-RPC off)" for the side-by-side comparison.
@@ -145,7 +146,7 @@ payments. Lowering the rung means another key, and that is a design choice, not 
   that holds value leaves the device.
 - **Recover with nothing from us:** everything derives from the seed. `Restore from seed`
   rebuilds the notes from the chain alone. The CLI demo shows 9 notes restored this way.
-- **Privacy at the network layer:** Anon-RPC is on by default.
+- **Privacy at the network layer:** Anon-RPC is on by default, over the Nox mixnet.
 
 ## Run it
 
@@ -165,9 +166,9 @@ devnet's shared genesis key, which the EF workshop publishes for that use.
 The browser app, against the demo pool:
 
 ```sh
-just mint-watch           # one terminal: the local mint
-just app                  # another: http://localhost:5173  (tor-js by default)
-#                         http://localhost:5173/?route=nym, ?route=passthrough, ?route=direct
+just cre-mint             # one terminal: the CRE mint, listening
+just app                  # another: http://localhost:5173  (Nox by default)
+#                         ?route=tor-js, ?route=nym, ?route=passthrough, ?route=direct
 ```
 
 The CRE mint (needs `cre login`):

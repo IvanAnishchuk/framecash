@@ -272,9 +272,10 @@ function wire() {
   sel.onchange = () => busy("Switching route", () => useRoute(sel.value as RouteId));
 }
 
-// tor-js is the default. ?route=nym (or passthrough, direct) picks another.
+// Nox is the default: the one route that carries every call, the payment send included
+// (F9). ?route=tor-js, nym, passthrough or direct picks another.
 const asked = new URLSearchParams(location.search).get("route") as RouteId | null;
-const start: RouteId = asked && asked in ROUTES ? asked : "tor-js";
+const start: RouteId = asked && asked in ROUTES ? asked : "nox";
 
 wire();
 render();

@@ -11,7 +11,7 @@
 import { AnonRpcWorker } from "@anon-rpc/browser-harness";
 import type { FetchLike } from "../../lib/src/client.ts";
 
-export type RouteId = "tor-js" | "nym" | "passthrough" | "direct";
+export type RouteId = "tor-js" | "nox" | "nym" | "passthrough" | "direct";
 
 type WorkerConfig = ConstructorParameters<typeof AnonRpcWorker>[0]["config"];
 
@@ -19,14 +19,24 @@ interface RouteSpec {
   label: string;
   specifier?: `0x${string}`;
   config?: WorkerConfig;
+  /** RPC that holds the specifier contract. Mainnet unless the adopters entry says otherwise. */
+  bootstrap?: string;
   anonymizes: boolean;
 }
 
 export const ROUTES: Record<RouteId, RouteSpec> = {
   "tor-js": {
-    label: "tor-js (Tor, default)",
+    label: "tor-js (Tor)",
     specifier: "0x700dA3193D35fA54Cd3fBf29B66f2a2A0385659e",
     config: { gateways: ["152.236.3.22:12298:uEiCH0VdbhryzJcMtCfB0vLA4sOvHdQ4hq5w7CopcwU59bQ"] },
+    anonymizes: true,
+  },
+  // The specifier lives on Sepolia (adopters.json5 chainId 11155111); the fetch can reach
+  // any chain. TLS to the RPC runs inside the worker, so the exit relays it unread.
+  nox: {
+    label: "Nox (Sphinx mixnet, default)",
+    specifier: "0x35133267A8F7EC35046a83DCA0f4Ca8A6e1b7A9A",
+    bootstrap: "https://ethereum-sepolia-rpc.publicnode.com",
     anonymizes: true,
   },
   nym: { label: "Nym mixnet", specifier: "0x3aCD9742C68F6d993066Ae25533e09b9e1f60eD0", anonymizes: true },
@@ -59,7 +69,7 @@ export function openRoute(id: RouteId): Route {
     preExisting: {
       rpcProvider: {
         request: async ({ method, params }: { method: string; params?: unknown[] }) => {
-          const res = await fetch(BOOTSTRAP_RPC, {
+          const res = await fetch(spec.bootstrap ?? BOOTSTRAP_RPC, {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params: params ?? [] }),

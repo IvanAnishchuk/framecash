@@ -1,7 +1,14 @@
 # F9. Does the Anon-RPC worker pass `eth_sendFrameTransaction` through?
 
-**Verdict:** fails over Nym, with a known cause (probe, 2026-11-07). The harness passes the
-method; the Nym worker drops the request's `content-type`, and Skandha refuses the request.
+**Verdict:** works over Nox (probe, 2026-11-07): the payment send goes to Skandha through the
+Nox mixnet and is included. It fails over Nym, which drops the request's `content-type`.
+
+**Nox result.** The app's whole flow ran over Nox, 43 calls in all and none outside it:
+faucet, deposit, the CRE mint's notes read back, and the payment. Payment
+`0x8c7be807d1fc76e69a1b9b856d94aee26996b80c62a1990381a25b246d8f0410` was sent with
+`eth_sendFrameTransaction` to Skandha over Nox and included in block 11030, with the CRE
+pool as payer. Nox's specifier lives on Sepolia; the design had misread that as Nox only
+reaching Sepolia. Screenshot: `docs/screenshots/02-paid-over-nox.png`.
 
 ## Why it matters
 
