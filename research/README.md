@@ -30,9 +30,9 @@ Each verdict links its evidence. See [`CLAUDE.md`](../CLAUDE.md) for what counts
 | # | Area | Verdict |
 |---|---|---|
 | [P1](prior-art/p01-ecash-on-evm.md) | Chaumian / blind-signature eCash on EVM chains | open |
-| [P2](prior-art/p02-pool-as-frame-sender.md) | Privacy pools as the frame-tx sender, paying their own gas | open |
-| [P3](prior-art/p03-bls12-381-solidity.md) | BLS12-381 verification and hash-to-G2 in Solidity after Pectra | open |
-| [P4](prior-art/p04-alt-mempool-projects.md) | Projects and demos already on the ERC-8421 alt mempool | open |
-| [P5](prior-art/p05-anon-rpc-integrations.md) | Apps already integrating Anon-RPC | open |
+| [P2](prior-art/p02-pool-as-frame-sender.md) | Privacy pools as the frame-tx sender, paying their own gas | done before (mechanism; differentiate) |
+| [P3](prior-art/p03-bls12-381-solidity.md) | BLS12-381 verification and hash-to-G2 in Solidity after Pectra | done before (ours, reused) |
+| [P4](prior-art/p04-alt-mempool-projects.md) | Projects and demos already on the ERC-8421 alt mempool | partly looked at |
+| [P5](prior-art/p05-anon-rpc-integrations.md) | Apps already integrating Anon-RPC | done before (Privacy Pools, opt-in) |
 | [P6](prior-art/p06-cre-signing-workflows.md) | CRE workflows that hold keys or sign in the confidential handler | open |
 | [P7](prior-art/p07-ens-private-receive.md) | Private receiving through ENS: stealth meta-addresses, pre-blinded slots | open |
