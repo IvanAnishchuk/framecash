@@ -267,10 +267,16 @@ export const balance = (w: Wallet): bigint => w.notes.filter((n) => !n.spent).re
 // Pay.
 // ---------------------------------------------------------------------------------------
 
+/**
+ * Max fee per gas: twice the base fee plus a fixed tip. Not eth_gasPrice: on the shared
+ * devnet it follows other users' tips (1.7 gwei against a 7 wei base fee on 2026-11-07),
+ * and the pool reserves maxFee × all frame limits from the note, so a 0.01 note could no
+ * longer pay 0.004. Payments at 2–7 million wei per gas were all included.
+ */
 export async function feeNow(rpc: Rpc): Promise<bigint> {
-  const price = BigInt(await rpc("eth_gasPrice"));
-  // The devnet base fee is single-digit wei; keep a floor that clears it with room.
-  return price * 2n > 2_000_000n ? price * 2n : 2_000_000n;
+  const block = await rpc("eth_getBlockByNumber", ["latest", false]);
+  const base = BigInt(block?.baseFeePerGas ?? 0);
+  return base * 2n + 5_000_000n;
 }
 
 export interface Payment {
