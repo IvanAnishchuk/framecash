@@ -90,6 +90,10 @@ export interface Wallet {
   /** The next unused counter. */
   next: number;
   notes: Note[];
+  /** Last block sync has scanned (decimal). Absent: scan from the pool's deployment. */
+  cursor?: string;
+  /** Our deposits the mint has not answered yet: deposit id -> counter per point index. */
+  waiting?: Record<string, (number | null)[]>;
 }
 
 export interface PoolInfo {
@@ -145,12 +149,27 @@ export function depositCalldata(points: Hex[]): Hex {
 // Sync: find our deposits by their blinded points, unblind what the mint announced.
 // ---------------------------------------------------------------------------------------
 
-async function logs(rpc: Rpc, pool: PoolInfo, event: string): Promise<any[]> {
+/**
+ * Blocks per eth_getLogs call. Every deposit and announcement carries 256-byte points, and
+ * over a mixnet a big reply outlives the worker's per-call timeout (25 s on Nox), so ranges
+ * go in chunks, and a chunk that fails is split in half.
+ */
+const LOG_CHUNK = 256n;
+
+async function logs(rpc: Rpc, pool: PoolInfo, event: string, from: bigint, to: bigint): Promise<any[]> {
   const ev = POOL_ABI.find((x) => x.type === "event" && x.name === event) as any;
-  const sig = `${event}(${ev.inputs.map((i: any) => i.type).join(",")})`;
-  const raw = await rpc("eth_getLogs", [
-    { address: pool.address, topics: [keccak256(toHex(sig))], fromBlock: toHex(pool.fromBlock), toBlock: "latest" },
-  ]);
+  const topic = keccak256(toHex(`${event}(${ev.inputs.map((i: any) => i.type).join(",")})`));
+  const range = async (a: bigint, b: bigint): Promise<any[]> => {
+    try {
+      return await rpc("eth_getLogs", [{ address: pool.address, topics: [topic], fromBlock: toHex(a), toBlock: toHex(b) }]);
+    } catch (e) {
+      if (b - a < 4n) throw e;
+      const mid = (a + b) / 2n;
+      return [...(await range(a, mid)), ...(await range(mid + 1n, b))];
+    }
+  };
+  const raw: any[] = [];
+  for (let a = from; a <= to; a += LOG_CHUNK) raw.push(...(await range(a, a + LOG_CHUNK - 1n < to ? a + LOG_CHUNK - 1n : to)));
   return raw.map((l: any) => ({ ...decodeEventLog({ abi: POOL_ABI, data: l.data, topics: l.topics }).args, log: l }));
 }
 
@@ -158,13 +177,17 @@ async function logs(rpc: Rpc, pool: PoolInfo, event: string): Promise<any[]> {
 export const GAP = 32;
 
 /**
- * Rebuild the note list from the chain. Works from the seed alone: every counter up to
- * `next + GAP` is re-derived and matched against the deposits' blinded points.
+ * Bring the note list up to date. Incremental: only blocks after `wallet.cursor` are read,
+ * and deposits still waiting for the mint are remembered in `wallet.waiting`. A wallet with
+ * no cursor (a restore) scans from the pool's deployment, matching every counter up to
+ * `next + GAP` against the deposits' blinded points, so the seed alone is enough.
  */
 export async function sync(rpc: Rpc, pool: PoolInfo, wallet: Wallet): Promise<{ added: Note[]; pending: number }> {
-  const deposited = await logs(rpc, pool, "Deposited");
-  const announced = new Map<string, any>();
-  for (const a of await logs(rpc, pool, "Announced")) announced.set(a.id.toString(), a);
+  const head = BigInt(await rpc("eth_blockNumber"));
+  const from = wallet.cursor ? BigInt(wallet.cursor) + 1n : pool.fromBlock;
+  const waiting = (wallet.waiting ??= {});
+  const deposited = from <= head ? await logs(rpc, pool, "Deposited", from, head) : [];
+  const announced = from <= head ? await logs(rpc, pool, "Announced", from, head) : [];
 
   // Deriving a blinded point is a hash-to-curve and a scalar multiplication. Keep them for
   // the session, so each sync only derives counters it hasn't seen.
@@ -177,38 +200,42 @@ export async function sync(rpc: Rpc, pool: PoolInfo, wallet: Wallet): Promise<{ 
   };
   derive(horizon);
 
-  const known = new Set(wallet.notes.map((n) => n.address.toLowerCase()));
-  const added: Note[] = [];
-  let pending = 0;
+  // Our deposits in the new range join the waiting list.
   for (const d of deposited) {
-    const ours = (d.blindedPoints as Hex[]).map((p) => points.get(p.toLowerCase()));
-    if (ours.every((i) => i === undefined)) continue;
-    const top = Math.max(...ours.filter((i): i is number => i !== undefined));
+    const ours = (d.blindedPoints as Hex[]).map((p) => points.get(p.toLowerCase()) ?? null);
+    if (ours.every((i) => i === null)) continue;
+    const top = Math.max(...ours.filter((i): i is number => i !== null));
     if (top + 1 > wallet.next) wallet.next = top + 1;
     if (wallet.next + GAP > horizon) derive((horizon = wallet.next + GAP));
+    waiting[d.id.toString()] = ours;
+  }
 
-    const a = announced.get(d.id.toString());
-    if (!a) {
-      pending++;
-      continue;
-    }
+  // Announcements for waiting deposits become notes.
+  const known = new Set(wallet.notes.map((n) => n.address.toLowerCase()));
+  const added: Note[] = [];
+  for (const a of announced) {
+    const id = a.id.toString();
+    const ours = waiting[id];
+    if (!ours) continue;
     for (let k = 0; k < a.pointIndexes.length; k++) {
       const index = ours[Number(a.pointIndexes[k])];
-      if (index === undefined) continue;
+      if (index === null || index === undefined) continue;
       const secret = noteSecret(wallet.seed, index);
       if (known.has(secret.address.toLowerCase())) continue;
       const denom = a.denoms[k] as bigint;
       const sig = unblind(fromHex(a.blindSigs[k]), rBytes(secret.r));
       const pk = pool.pubkeys.get(denom.toString());
       if (!pk || !verify(pk, secret.address, sig, domainOf(pool))) throw new Error(`sync: mint signature for note ${index} does not verify`);
-      const note: Note = { index, address: secret.address, denom: denom.toString(), sig: toHex(sig), depositId: d.id.toString(), spent: false };
+      const note: Note = { index, address: secret.address, denom: denom.toString(), sig: toHex(sig), depositId: id, spent: false };
       wallet.notes.push(note);
       known.add(secret.address.toLowerCase());
       added.push(note);
     }
+    delete waiting[id];
   }
+  wallet.cursor = head.toString();
   await markSpent(rpc, pool, wallet.notes.filter((n) => !n.spent));
-  return { added, pending };
+  return { added, pending: Object.keys(waiting).length };
 }
 
 const derived = new Map<string, Map<string, number>>();
