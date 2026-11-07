@@ -1,8 +1,9 @@
 # Frame-tx eCash: blind-signature notes that pay their own gas
 
-<!-- DESIGN DRAFT. Derived from the ERC-8421, EIP-8141, EIP-8250 and EIP-2537 specs and
-     the ETHGlobal Mumbai prize text (2026-10-22). Written 2026-10-24 and tentative. The frontend form is left open on purpose. Open
-     questions live in research/README.md, not here. -->
+<!-- DESIGN. Derived from the ERC-8421, EIP-8141, EIP-8250 and EIP-2537 specs and
+     the ETHGlobal Mumbai prize text (2026-10-22). Written 2026-10-24; updated 2026-11-07
+     where the build and the probes changed it (marked "as built" or "measured"). The
+     frontend is a web app (app/). Open questions live in research/README.md, not here. -->
 
 ## 1. The idea in three sentences
 
@@ -21,7 +22,8 @@ also can't link the deposit to the payment through the user's IP.
 - **Who pays gas:** the pool, with the fee taken from the note inside the same tx.
 - **Where the funds land:** straight at the payee, with change re-deposited in the same
   tx. No fresh wallet ever holds funds.
-- **Double-spend check:** an EIP-8250 single-use nonce key, enforced by the protocol.
+- **Double-spend check:** an EIP-8250 nonce key at sequence 0, consumed by the protocol;
+  the pool accepts no other sequence (F3: the single-use form is not live on the devnet).
 - **Network privacy:** Anon-RPC for every read and send.
 - **Mint:** a CRE Confidential Workflow in simulation, against the devnet (§6).
 
@@ -74,8 +76,11 @@ Sponsor picks, up to three:
 
 The fields:
 - `sender = pool`
-- `nonce_keys = [k]` with `k = H("note" ‖ pool ‖ d ‖ A)`, and `nonce_seq = MAX_NONCE_SEQ`.
-  This is EIP-8250's single-use form: the protocol itself marks the note spent.
+- `nonce_keys = [k]` with `k = keccak256(abi.encode(NOTE_TAG, chainid, pool, d, A))`, and
+  `nonce_seq = 0`. The protocol moves the key to 1 when frame 0 approves, and the pool
+  accepts only 0, so the note is spent once. *(As built. The draft used EIP-8250's
+  single-use form `MAX_NONCE_SEQ`; Skandha rejects it today, see F3. `FramePool.noteSeq` is
+  an immutable, so a later pool can switch.)*
 - `signatures = [SECP256K1 by a]`: the note key signs the canonical sig hash.
 
 | # | Mode | Target | What it does |
@@ -85,8 +90,9 @@ The fields:
 
 The checks in frame 0:
 - The protocol-verified signer (`SIGPARAM`) is `A`.
-- `TXPARAM(0x0E) == 1`, `TXPARAM(0x10) == H("note" ‖ pool ‖ d ‖ A)`, and
-  `nonce_seq == MAX`. EIP-8250 says single-use keys MUST be authenticated this way.
+- `TXPARAM(0x0E) == 1`, `TXPARAM(0x10) == k`, and `TXPARAM(0x01) == noteSeq` (0). EIP-8250
+  says single-use keys MUST be authenticated this way, and F3 showed that without the
+  sequence check a consumed key can be used again at sequence 1.
 - The frame list is exactly `[self_verify, spend(...)]`, and frame 1's data names
   `(d, A)`.
 - `e(pk_d, H_to_G2(A)) == e(G1, S)`.
@@ -135,8 +141,10 @@ nothing from you" idea directly.
 
 ## 4. Gas and why the alt mempool is required
 
-These are estimates from the EIP-2537 and EIP-8250 constants, to be measured on the
-devnet:
+**Measured on the devnet (2026-11-07, F2):** the VERIFY frame used 317,451 gas, the SENDER
+frame 89,867, and the whole payment 928,052, including state gas. The estimate below
+missed the helper calls, the frame-data decoding and the BLS code's byte-copy loops. It is
+kept as the reasoning:
 
 | Validation item | Gas |
 |---|---|
@@ -197,9 +205,10 @@ Facts to settle early:
 - **The harness is browser-only** (`@anon-rpc/browser-harness`). A web app or extension
   can use it as is. A native app would need a new harness, which is itself one of the
   track's idea-list items.
-- **Can it reach the devnet?** Nox is pinned to Sepolia. tor-js and Nym route generic
-  HTTPS. Whether they reach `devnet{1,2,3}.altmempool.wtf` and `gateway*.altmempool.wtf`
-  is **unverified**. Ask the team on site.
+- **Can it reach the devnet?** The live devnet is `altmempool.forshtat.com` (ethrex) and
+  `/rpc` (Skandha); the `*.altmempool.wtf` hosts did not answer. Nym reaches it for reads
+  and deposits. The payment send over Nym fails, because the worker drops `content-type`.
+  tor-js's demo gateway was down (F8, F9).
 
 ## 6. The mint
 
