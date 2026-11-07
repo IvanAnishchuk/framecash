@@ -33,15 +33,28 @@ export class RpcError extends Error {
 }
 
 /** JSON-RPC over `fetchFn`. `onCall` sees every method name, for the app's route display. */
+/** Transport failures (a mixnet losing a reply) get this many more tries. Node errors don't. */
+const TRANSPORT_RETRIES = 2;
+
 export function httpRpc(url: string, fetchFn: FetchLike = fetch, onCall?: (method: string) => void): Rpc {
   let id = 0;
+  // Every call this client makes is idempotent: reads, and resends of the same signed tx
+  // (same hash, same nonce key). So a lost reply is retried rather than surfaced.
   const post = async (payload: unknown) => {
-    const res = await fetchFn(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    return res.json();
+    let last: unknown;
+    for (let attempt = 0; attempt <= TRANSPORT_RETRIES; attempt++) {
+      try {
+        const res = await fetchFn(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        return await res.json();
+      } catch (e) {
+        last = e;
+      }
+    }
+    throw last;
   };
   const rpc: Rpc = async (method, params = []) => {
     onCall?.(method);
@@ -324,9 +337,18 @@ export async function preparePayment(pool: PoolInfo, wallet: Wallet, payee: Hex,
   return { tx, hash: txHash(tx), note, changeIndexes };
 }
 
-/** Submit to the alt mempool. Returns the hash Skandha reports. */
+/**
+ * Submit to the alt mempool. Returns the tx hash. If the send's reply was lost but Skandha
+ * already holds the tx (a retry then reports it as known), the local hash is the answer.
+ */
 export async function submitPayment(chain: Chain, p: Payment): Promise<Hex> {
-  return chain.mempool("eth_sendFrameTransaction", [toWire(p.tx)]);
+  try {
+    return await chain.mempool("eth_sendFrameTransaction", [toWire(p.tx)]);
+  } catch (e) {
+    const status = await chain.mempool("skandha_frameTransactionStatus", [p.hash]).catch(() => null);
+    if (status?.status && status.status !== "Cancelled") return p.hash;
+    throw e;
+  }
 }
 
 /**
