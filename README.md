@@ -35,11 +35,20 @@ What does not work yet, with the cause:
 |---|---|---|
 | Payment send over Nym | The Nym worker drops the request's `content-type`; Skandha refuses it (`-32600`). Reads and deposits over Nym work. | Report to Nym; or a tor-js gateway that works ([F9](research/feasibility/f09-anon-rpc-frame-send.md)) |
 | tor-js | Its only public demo gateway timed out | Use a gateway from the anon-rpc team ([F8](research/feasibility/f08-anon-rpc-reaches-devnet.md)) |
-| CRE mint simulation | The CRE CLI login expired, so `simulate` stops at credential validation. The workflow is ported, tested and compiles to wasm. | `cre login`, then `just cre-mint-once <deposit tx>` ([F5](research/feasibility/f05-cre-write-to-1337.md)) |
 | ENS names | Pay resolves ENSv2 names on Sepolia; registering per-user names needs Sepolia ETH | Fund a Sepolia key ([F10](research/feasibility/f10-ensv2-on-sepolia.md), [F11](research/feasibility/f11-eac-record-scoped-roles.md)) |
 
-Until the CRE simulation runs, deposits are minted by the **local mint** (`just
-mint-watch`). It is the same signing rule in TypeScript, announcing from the mint's own key.
+**The mint is a Chainlink CRE workflow** (`workflow/`), run with `cre workflow simulate
+--broadcast --listen`. It signs in the confidential handler and writes announcements back
+through `WriteReport`. On pool `0x27c0e726879c4703d6cef2da49db818ba0abd007` it has minted:
+- a deposit (report `0x582972cf…`, block 10730);
+- the change from a payment, picked out of the frame tx (`0xd25ab340…`, block 10750);
+- live, the change from another payment as it landed (`0x4a84b5f3…`, block 10785).
+
+CRE has no forwarder on chain 1337, so the chain is declared under `experimental-chains`
+with our `DevnetForwarder` ([F5](research/feasibility/f05-cre-write-to-1337.md),
+[F6](research/feasibility/f06-cre-log-trigger-frame-blocks.md)). Like CRE's mock it checks
+no signatures, which is fine on a throwaway devnet and nowhere else. The local mint (`just
+mint-watch`) runs the same rule in TypeScript, for the first pool and for runs without CRE.
 
 ## How a payment works
 
@@ -161,11 +170,12 @@ just app                  # another: http://localhost:5173  (tor-js by default)
 #                         http://localhost:5173/?route=nym, ?route=passthrough, ?route=direct
 ```
 
-The CRE mint, once `cre login` works:
+The CRE mint (needs `cre login`):
 
 ```sh
-just cre-mint-once <deposit tx hash>    # one deposit
-just cre-mint                           # as a service
+just deploy-cre                         # a DevnetForwarder and a pool that trusts it
+just cre-mint                           # as a service, listening for Deposited logs
+just cre-mint-once <tx hash> [log index]   # one deposit, replayed
 ```
 
 ## Layout

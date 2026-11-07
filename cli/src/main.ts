@@ -141,16 +141,27 @@ async function init() {
   console.log(`mint     ${mint}`);
 }
 
-async function deploy() {
-  const art = JSON.parse(fs.readFileSync(path.join(ROOT, "contracts/out/FramePool.sol/FramePool.json"), "utf8"));
+const artifact = (name: string) => JSON.parse(fs.readFileSync(path.join(ROOT, `contracts/out/${name}.sol/${name}.json`), "utf8"));
+
+/**
+ * Deploy and stake a pool. Without a flag the mint's EOA announces (the local mint). With
+ * `--cre` a DevnetForwarder is deployed first and becomes the pool's forwarder, so the CRE
+ * simulation's report writes land through it (F5).
+ */
+async function deploy(flag?: string) {
   const mint = privateKeyToAccount(mintEoaKey()).address;
+  let forwarder: Hex = mint;
+  if (flag === "--cre") {
+    const f = await send(deployerKey(), null, 0n, artifact("DevnetForwarder").bytecode.object);
+    forwarder = f.contractAddress;
+    console.log(`forwarder ${forwarder} (DevnetForwarder, for the CRE simulation)`);
+  }
   const keys = mintKeys();
   const data = encodeDeployData({
     abi: POOL_ABI,
-    bytecode: art.bytecode.object,
-    // forwarder = the mint's EOA (the local mint announces directly; F5 decides CRE), treasury
-    // = the same EOA, so the tax pays its gas. One-hour refund delay, seq-0 notes (F3).
-    args: [mint, mint, 3600n, [...LADDER], keys.map((k) => `0x${Buffer.from(k.pk).toString("hex")}` as Hex), 0n, REGISTRY, STAKE, 86400],
+    bytecode: artifact("FramePool").bytecode.object,
+    // Treasury = the mint EOA, so the tax pays its gas. One-hour refund delay, seq-0 notes (F3).
+    args: [forwarder, mint, 3600n, [...LADDER], keys.map((k) => `0x${Buffer.from(k.pk).toString("hex")}` as Hex), 0n, REGISTRY, STAKE, 86400],
   });
   const r = await send(deployerKey(), null, parseEther("0.05"), data);
   const s = load();
@@ -296,7 +307,7 @@ async function demo() {
 const [cmd, ...args] = process.argv.slice(2);
 const commands: Record<string, (...a: string[]) => Promise<unknown>> = {
   init,
-  deploy,
+  deploy: (f) => deploy(f),
   deposit: (a) => deposit(a),
   mint: (f) => mint(f),
   sync: doSync,

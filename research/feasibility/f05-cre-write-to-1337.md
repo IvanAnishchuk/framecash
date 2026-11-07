@@ -1,7 +1,6 @@
 # F5. Can a CRE simulation write to chain 1337?
 
-**Verdict:** open. Blocked on 2026-11-07: the CRE CLI's login has expired and every
-command, `simulate` included, stops at credential validation.
+**Verdict:** works (probe, 2026-11-07), with our own forwarder on the chain.
 
 ## Why it matters
 
@@ -25,28 +24,31 @@ Chainlink prize needs an answer from Chainlink; if not, the track drops.
 
 ## Findings
 
-Tried, and could not run (2026-11-07, CRE CLI v1.32.0):
+- The override exists. CRE CLI v1.32.0 has an `experimental-chains` target section with
+  `chain-type`, `chain-selector`, `rpc-url` and `forwarder` (from the binary's settings
+  structs; `--help` doesn't document it). An ordinary `rpcs:` entry for chain 1337 is
+  dropped with "no RPC URLs found for target", by name or by selector.
+- The forwarder is ours: `contracts/src/DevnetForwarder.sol`. It has Keystone's `report`
+  entry point and metadata split, and checks no signatures, like the mock. Copying the real
+  `MockKeystoneForwarder 1.0.0` runtime from Sepolia would not work, because its owner and
+  forwarder allowlist live in storage the constructor writes.
+- With that, `cre workflow simulate --broadcast` on a devnet deposit signed in the
+  confidential handler and wrote the announcement through the forwarder. The pool accepted
+  it, and the wallet unblinded and verified all five notes.
+- The CLI reads `project.yaml` from the working directory and not from `-R`.
 
-```
-✗ Credential validation failed
-✗ authentication required: credential validation failed: authentication failed: unable to
-  retrieve organization info. … token refresh failed: auth response: 403 Forbidden
-```
+No sidecar is needed: the workflow's own `WriteReport` lands the announcement, so the
+"meaningfully used" question no longer depends on one. F7, the external-system leg, is
+separate.
 
-What is ready, so the run is one command after `cre login`:
-- `workflow/` holds the mint workflow, ported from teecash with no logic change (the event,
-  ledger and report layouts are identical). Host tests pass, and the wasip1 build compiles.
-- `workflow/project.yaml` targets `geth-testnet` (chain 1337) at the devnet RPC, and
-  `config.devnet.json` names the demo pool. `node cli/src/main.ts workflow-env` writes the
-  same four mint keys the local mint uses into `workflow/.env`.
-- The command: `just cre-mint-once <deposit tx>`. Its output answers this question: the
-  simulator either names a forwarder for 1337 or fails at `WriteReport`.
-
-Still to decide after that run: the demo pool's `forwarder` is the mint EOA (the local mint
-announces directly). A CRE write lands through a forwarder contract, so a pool for the CRE
-path is deployed with `forwarder` = whatever address the simulation writes from.
+Trust, stated in the README: the DevnetForwarder accepts a report from anyone, as the
+simulator's mock does. A real deployment needs CRE to support the chain with its signed
+forwarder.
 
 ## Evidence
 
-- `cre workflow simulate … -T devnet-settings --allow-unknown-chains` output above, on the
-  `blindmint` workflow at this commit.
+- Probe: [`probes/f05-cre-write-to-1337/`](../../probes/f05-cre-write-to-1337/README.md),
+  with the simulation output.
+- Report write `0x582972cface2bc936e1b09489cd46dc837ab57620ca0fa371f1c4d9e9be73668`, block
+  10730, chain 1337. Pool `0x27c0e726879c4703d6cef2da49db818ba0abd007`, forwarder
+  `0x88e93b8df54523b7d45807ec592c99cf6c576ec8`.

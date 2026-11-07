@@ -1,9 +1,13 @@
 # CRE project settings.
 #
-# The mint watches FramePool on the EIP-8141 devnet and writes announcements back to it.
-# Chain 1337 is `geth-testnet` in chain-selectors (selector 3379446385462418246). The CLI
-# does not list it as supported, so every command here passes --allow-unknown-chains.
+# The mint watches FramePool on the EIP-8141 devnet (chain 1337, chain-selectors name
+# `geth-testnet`, selector 3379446385462418246) and writes announcements back to it. CRE has
+# no forwarder there, so the chain goes under `experimental-chains` with one of ours: a
+# DevnetForwarder that `node cli/src/main.ts deploy --cre` deployed and the CRE pool trusts.
+# Commands pass --allow-unknown-chains.
 devnet-settings:
-  rpcs:
-    - chain-name: geth-testnet
-      url: https://altmempool.forshtat.com
+  experimental-chains:
+    - chain-type: evm
+      chain-selector: 3379446385462418246
+      rpc-url: https://altmempool.forshtat.com
+      forwarder: "0x88e93b8df54523b7d45807ec592c99cf6c576ec8"

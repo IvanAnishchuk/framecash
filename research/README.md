@@ -17,8 +17,8 @@ Each verdict links its evidence. See [`CLAUDE.md`](../CLAUDE.md) for what counts
 | [F2](feasibility/f02-staked-validation-budget.md) | Does Skandha admit ~180k of validation gas for a staked sender? | Whether the pool can pay its own gas | works (317k admitted) |
 | [F3](feasibility/f03-single-use-nonce-keys.md) | Are EIP-8250 single-use nonce keys live? | Nullifier design: nonce key or `spent[]` | fails (seq-0 key + pool check instead) |
 | [F4](feasibility/f04-signer-not-sender.md) | Can `self_verify` approve on a SECP256K1 signer that isn't `tx.sender`? | How the note key binds to the sig hash | works |
-| [F5](feasibility/f05-cre-write-to-1337.md) | Can a CRE simulation write to chain 1337? | Whether the Chainlink track holds | open (blocked: `cre login`) |
-| [F6](feasibility/f06-cre-log-trigger-frame-blocks.md) | Does the CRE log trigger work on blocks with type-`0x06` txs? | Whether the mint can watch the devnet | open (blocked: `cre login`) |
+| [F5](feasibility/f05-cre-write-to-1337.md) | Can a CRE simulation write to chain 1337? | Whether the Chainlink track holds | works (own forwarder) |
+| [F6](feasibility/f06-cre-log-trigger-frame-blocks.md) | Does the CRE log trigger work on blocks with type-`0x06` txs? | Whether the mint can watch the devnet | works (replay and live) |
 | [F7](feasibility/f07-cre-external-leg.md) | What satisfies CRE's "external API/system" requirement? | Whether the workflow needs another piece | unknown (ask Chainlink) |
 | [F8](feasibility/f08-anon-rpc-reaches-devnet.md) | Can tor-js or Nym reach the `altmempool.wtf` hosts? | Whether the Anon-RPC track holds | works (Nym); tor-js unknown |
 | [F9](feasibility/f09-anon-rpc-frame-send.md) | Does the Anon-RPC worker pass `eth_sendFrameTransaction` through? | Whether payments are network-private | fails over Nym (header dropped) |

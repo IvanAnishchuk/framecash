@@ -70,7 +70,7 @@ demo: build
 # --- the browser app ------------------------------------------------------------------
 
 # http://localhost:5173 (tor-js), or ?route=nym, ?route=passthrough, ?route=direct.
-# Run `just mint-watch` beside it so deposits get minted.
+# Run `just cre-mint` beside it so deposits to the CRE pool get minted.
 app:
     npx --prefix app vite app --port 5173
 
@@ -80,14 +80,21 @@ app:
 workflow-env:
     {{ cli }} workflow-env
 
+# Deploy a DevnetForwarder and a pool that trusts it, for the CRE mint. Then put the two
+# addresses in workflow/project.yaml and workflow/blindmint/config.devnet.json.
+deploy-cre: build
+    {{ cli }} deploy --cre
+
 # Simulate the CRE mint on one deposit tx. INDEX is the Deposited log's index in that tx
-# (a value-carrying tx emits an EIP-7708 Transfer log first). Needs `cre login`.
+# (a value-carrying tx emits an EIP-7708 Transfer log first; in a payment the change
+# deposit is log 1). Needs `cre login`. The CLI reads project.yaml from the working
+# directory, so this runs inside workflow/.
 cre-mint-once tx index="1": workflow-env
-    GOMAXPROCS=2 nice -n19 cre workflow simulate blindmint -R workflow -e workflow/.env -T devnet-settings \
+    cd workflow && GOMAXPROCS=2 nice -n19 cre workflow simulate blindmint -e .env -T devnet-settings \
         --allow-unknown-chains --non-interactive --broadcast --trigger-index 0 \
         --evm-tx-hash {{ tx }} --evm-event-index {{ index }}
 
 # The CRE mint as a service: fires on each Deposited log. Needs `cre login`.
 cre-mint: workflow-env
-    GOMAXPROCS=2 nice -n19 cre workflow simulate blindmint -R workflow -e workflow/.env -T devnet-settings \
+    cd workflow && GOMAXPROCS=2 nice -n19 cre workflow simulate blindmint -e .env -T devnet-settings \
         --allow-unknown-chains --non-interactive --broadcast --listen --trigger-index 0

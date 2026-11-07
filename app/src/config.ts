@@ -8,9 +8,13 @@ export const MEMPOOL_URL = "https://altmempool.forshtat.com/rpc";
 export const EXPLORER = "https://altmempoolexplorer.forshtat.com/";
 export const CHAIN_ID = 1337;
 
-/** Deployed and staked by `node cli/src/main.ts demo` on 2026-11-07. */
-const DEMO_POOL = "0xa6641b28a9e916b985326d9c1a394f3cfd946cfe";
-const DEMO_FROM_BLOCK = 10270n;
+/**
+ * The CRE pool, deployed and staked by `just deploy-cre` on 2026-11-07. The CRE mint
+ * (`just cre-mint`) answers its deposits. The first pool, minted locally, is
+ * ?pool=0xa6641b28a9e916b985326d9c1a394f3cfd946cfe&from=10270.
+ */
+const DEMO_POOL = "0x27c0e726879c4703d6cef2da49db818ba0abd007";
+const DEMO_FROM_BLOCK = 10704n;
 
 /** ENSv2 runs on Sepolia (docs.ens.domains, Deployments). Names resolve there, over the
  *  same Anon-RPC route as everything else. */

@@ -1,0 +1,26 @@
+  Added experimental chain (chain-selector: 3379446385462418246)
+                                                                
+✓ Workflow compiled
+✓ Simulation limits enabled
+  HTTP: req=120kb resp=250kb timeout=10s | ConfHTTP: req=125kb resp=500kb timeout=1m30s | Consensus obs=25kb | ChainWrite evm_report=50kb evm_gas=10000000 solana_report=265b solana_cu=300000 | WASM binary=100mb compressed=20mb
+  Binary hash: 965594f71a55b32baf9b813e5845460648e371bbbb7b9b5eca8d75ec177a7c4c
+  Config hash: 9688c1af75fee696b74efeafaca6ee6d3cd493b18e7bfdcd498b60678ef01e54
+2026-11-07T05:53:41Z [SIMULATION] Simulator Initialized
+
+2026-11-07T05:53:41Z [SIMULATION] Running trigger trigger=evm:ChainSelector:3379446385462418246@1.0.0
+╭────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Trigger requested TEE Execution your trigger will run in one of the following Tees:                │
+│     - AWS Nitro in us-west-2                                                                       │
+│ The simulator is not a real TEE, and is meant to debug.                                            │
+│ Do not use it for sensitive information.                                                           │
+│ During real execution, user logs for this trigger will not be visible, and will not leave the TEE. │
+│ They are presented in the simulator for debugging only.                                            │
+│                                                                                                    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+✓ Workflow Simulation Result:
+"signed 5 notes for deposit 1"
+
+2026-11-07T05:53:48Z [SIMULATION] Execution finished signal received
+2026-11-07T05:53:48Z [SIMULATION] Skipping WorkflowEngineV2
