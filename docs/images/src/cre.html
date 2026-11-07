@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>framecash CRE mint</title>
+<style>
+  html, body { margin: 0; background: #151614; }
+  #term { width: 1280px; height: 800px; box-sizing: border-box; padding: 28px 32px; background: #151614; overflow: hidden; }
+  .bar { color: #9b9a93; font: 600 15px system-ui, sans-serif; margin-bottom: 14px; }
+  pre { margin: 0; color: #d9d8d2; font: 14.5px/1.45 ui-monospace, "DejaVu Sans Mono", monospace; white-space: pre; }
+  .ok { color: #7fcf9c; }
+  .hi { color: #f0c674; }
+  .dim { color: #7d7c76; }
+</style>
+</head>
+<body>
+<div id="term">
+<div class="bar">$ just cre-mint &nbsp;·&nbsp; cre workflow simulate blindmint --broadcast --listen (Chainlink CRE, EIP-8141 devnet)</div>
+<pre>  Added experimental chain (chain-selector: 3379446385462418246)
+<span class="ok">✓ Workflow compiled</span>
+EVM log trigger selected.
+Waiting for a matching EVM log event...
+Chain: geth-testnet
+Contract: 0x27C0e726879C4703d6ceF2da49db818ba0abD007
+  Listening for logs starting at block 10998...
+<span class="dim">2026-11-07T06:20:36Z [SIMULATION] Running trigger trigger=evm:ChainSelector:3379446385462418246@1.0.0</span>
+<span class="ok">✓ Matching EVM log event found at block 11021</span> (tx 0x0f4c07c41b3bb3bb539658b9723cb354c5d7bd155e9fb41e3ab2df565e027d96, index 9)
+╭────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Trigger requested TEE Execution your trigger will run in one of the following Tees:                │
+│     - AWS Nitro in us-west-2                                                                       │
+│ The simulator is not a real TEE, and is meant to debug.                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────╯
+<span class="ok">✓ Workflow Simulation Result:</span>
+<span class="hi">"signed 4 notes for deposit 4"</span>
+Listen: ready for next request (run #2)
+<span class="ok">✓ Matching EVM log event found at block 11030</span> (tx 0x8c7be807d1fc76e69a1b9b856d94aee26996b80c62a1990381a25b246d8f0410, index 12)
+╭────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ Trigger requested TEE Execution your trigger will run in one of the following Tees:                │
+│     - AWS Nitro in us-west-2                                                                       │
+│ The simulator is not a real TEE, and is meant to debug.                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────╯
+<span class="ok">✓ Workflow Simulation Result:</span>
+<span class="hi">"signed 4 notes for deposit 5"</span>
+Listen: ready for next request (run #3)</pre>
+</div>
+</body>
+</html>

@@ -68,6 +68,87 @@ the pool as payer and 43 RPC calls, all via Nox.
   mint runs; it currently runs on my machine)
 - Explorer: https://altmempoolexplorer.forshtat.com/ (search the tx hashes above)
 
+## Images
+
+In `docs/images/`:
+- **Logo:** `logo-512.png` (512×512).
+- **Cover:** `cover-1280x720.png` (16:9).
+- **Screenshots, in this order:**
+  1. `shot-1-wallet-paid.png`: the wallet after a payment, over Nox;
+  2. `shot-2-traffic-all-via-nox.png`: every RPC call, the payment send included, via Nox;
+  3. `shot-3-cre-mint.png`: the CRE mint signing the deposit, then the change from the
+     payment's frame tx;
+  4. `shot-4-explorer-payment.png`: the payment on the alt-mempool explorer, on chain,
+     sender and payer the pool, every admission rule passed.
+
+## Tech stack
+
+- **Ethereum developer tools:** Foundry, viem
+- **Blockchain networks:** Ethereum Sepolia; other: the EIP-8141 / ERC-8421 alt-mempool
+  devnet (chain 1337)
+- **Programming languages:** Solidity, TypeScript, Go
+- **Web frameworks:** none (vanilla TypeScript, built with Vite)
+- **Databases:** none (notes live in the browser's storage and are rebuilt from the chain)
+- **Design tools:** none
+- **Other technologies:** Chainlink CRE, Anon-RPC (`@anon-rpc/browser-harness`), Nox mixnet,
+  EIP-8141 frame transactions, ERC-8421 alt mempool (Skandha), ethrex, EIP-2537 BLS12-381
+  precompiles, EIP-8250 keyed nonces, ENSv2, `@noble/curves`, gnark-crypto, Playwright
+- **AI tools:** Claude Code (Claude Opus) wrote most of the code and the docs under my
+  direction: the `FramePool` contract and its tests, the TypeScript client and app, the port
+  of the CRE workflow, the devnet probes, and the research write-ups. The BLS code and the
+  blind-mint contract logic come from my earlier projects, teecash and NozKash. The design
+  and the decisions are mine.
+
+## Sponsors (Track & prizes form)
+
+Link format: `https://github.com/IvanAnishchuk/framecash/blob/3d16ab64d1c92fa31ec926431fab8ca4dad9ece3/<path>#L<n>`
+
+### Ethereum Foundation
+
+- **Why applicable:** Every payment is an EIP-8141 frame transaction whose sender and gas
+  payer is the pool contract, admitted by the ERC-8421 alt mempool as a staked entity. Its
+  VERIFY frame checks a BLS blind signature for 317k gas, over three times the canonical
+  100k. All wallet traffic, the payment send included, goes through Anon-RPC over the Nox
+  mixnet.
+- **Link:** https://github.com/IvanAnishchuk/framecash/blob/3d16ab64d1c92fa31ec926431fab8ca4dad9ece3/contracts/src/FramePool.sol#L264
+- **Ease (suggested):** 6/10
+- **Feedback:** Frame transactions work as specified, and the workshop's bytecode-helper
+  pattern made them usable from Solidity. What cost time:
+  - Skandha rejects EIP-8250's single-use nonce form (2^64-1), so a used key can be reused
+    at sequence 1 unless the contract checks the sequence.
+  - A transfer to a new account needs about 205k gas, and with too low a limit ethrex
+    reports "insufficient funds".
+  - The devnet hosts named in the docs (`*.altmempool.wtf`) were dead.
+  - For Anon-RPC: Nym's worker drops request headers, so Skandha refuses its requests, and
+    the tor-js demo gateway was down. Nox worked.
+
+### Chainlink
+
+- **Why applicable:** The mint is a CRE workflow: a log trigger on deposits, blind signing
+  in the confidential handler with mint keys from secrets, and WriteReport to announce the
+  notes. We simulated it with --broadcast --listen against the EIP-8141 devnet, where it
+  also mints the change deposits emitted from inside frame transactions.
+- **Link:** https://github.com/IvanAnishchuk/framecash/blob/3d16ab64d1c92fa31ec926431fab8ca4dad9ece3/workflow/blindmint/workflow.go#L252
+- **Ease (suggested):** 5/10
+- **Feedback:** Simulating against a chain CRE does not list took digging. A plain rpcs
+  entry for chain 1337 is silently dropped ("no RPC URLs found"), even with
+  --allow-unknown-chains. The working form is the experimental-chains section with our own
+  forwarder, which we found only in the CLI binary. `cre --help` should document it. Also,
+  the CLI reads project.yaml from the working directory, not from -R.
+
+### ENS
+
+- **Why applicable:** The Pay field takes an ENS name and resolves it through the ENSv2
+  Universal Resolver on Sepolia, for the devnet's coin type (0x80000539, ENSIP-11). The
+  lookup goes over the same Anon-RPC route as every other call, so the name you pay is not
+  linked to your IP.
+- **Link:** https://github.com/IvanAnishchuk/framecash/blob/3d16ab64d1c92fa31ec926431fab8ca4dad9ece3/app/src/main.ts#L192
+- **Ease (suggested):** 8/10
+- **Feedback:** Resolving through viem's Universal Resolver on Sepolia worked with no extra
+  configuration. The Sepolia contract addresses on the Deployments page are rendered by a
+  component, so the llms-full.txt export doesn't include them, and agents and scripts that
+  read docs as text miss them.
+
 ## Prizes
 
 **Ethereum Foundation: alternative mempool** (also qualifies for Anon-RPC; EF places

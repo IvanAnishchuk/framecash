@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>framecash cover</title>
+<style>
+  html, body { margin: 0; padding: 0; }
+  #cover {
+    width: 1280px; height: 720px; box-sizing: border-box; position: relative; overflow: hidden;
+    background: #f6f5f1; color: #1d1d1b;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 96px 104px;
+  }
+  .mark { position: absolute; right: 96px; top: 50%; transform: translateY(-50%); width: 380px; height: 380px; }
+  h1 { font-size: 112px; line-height: 1; margin: 64px 0 28px; letter-spacing: -0.03em; }
+  p.tag { font-size: 40px; line-height: 1.25; margin: 0; white-space: nowrap; color: #2f5d50; font-weight: 600; }
+  ul { list-style: none; padding: 0; margin: 56px 0 0; display: flex; gap: 14px; flex-wrap: wrap; max-width: 700px; }
+  li { font-size: 22px; padding: 8px 18px; border: 2px solid #c9d8d2; border-radius: 999px; color: #2f5d50; background: #fff; }
+</style>
+</head>
+<body>
+<div id="cover">
+  <h1>framecash</h1>
+  <p class="tag">Private cash that pays its own gas.</p>
+  <ul>
+    <li>EIP-8141 frame tx</li>
+    <li>ERC-8421 alt mempool</li>
+    <li>Anon-RPC over Nox</li>
+    <li>Chainlink CRE mint</li>
+  </ul>
+  <svg class="mark" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" rx="112" fill="#1f3f37"/>
+    <rect x="96" y="148" width="250" height="250" rx="40" fill="none" stroke="#7fc4ad" stroke-width="22" opacity="0.55"/>
+    <rect x="166" y="114" width="250" height="250" rx="40" fill="none" stroke="#7fc4ad" stroke-width="22"/>
+    <circle cx="291" cy="239" r="74" fill="#f6f5f1"/>
+    <text x="291" y="268" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="88" font-weight="700" fill="#1f3f37">f</text>
+  </svg>
+</div>
+</body>
+</html>
