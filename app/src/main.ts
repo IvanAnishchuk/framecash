@@ -282,5 +282,6 @@ render();
 $<HTMLSelectElement>("route").value = start;
 busy(`Starting Anon-RPC (${start})`, async () => {
   await useRoute(start);
+  say("Syncing notes…");
   await doSync();
 });

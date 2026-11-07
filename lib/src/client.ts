@@ -16,7 +16,10 @@ import { LADDER, mintable, pointCount, split } from "./ladder.ts";
 import { blindedPoint, noteSecret, rBytes } from "./notes.ts";
 import { POOL_ABI, buildPayment, maxCostBound, noteKey } from "./pool.ts";
 
-export type Rpc = (method: string, params?: unknown[]) => Promise<any>;
+export type Rpc = ((method: string, params?: unknown[]) => Promise<any>) & {
+  /** Many calls in one HTTP request (JSON-RPC batch). Over a mixnet one round trip is seconds. */
+  batch?: (calls: [string, unknown[]][]) => Promise<any[]>;
+};
 export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 
 export class RpcError extends Error {
@@ -32,17 +35,33 @@ export class RpcError extends Error {
 /** JSON-RPC over `fetchFn`. `onCall` sees every method name, for the app's route display. */
 export function httpRpc(url: string, fetchFn: FetchLike = fetch, onCall?: (method: string) => void): Rpc {
   let id = 0;
-  return async (method, params = []) => {
-    onCall?.(method);
+  const post = async (payload: unknown) => {
     const res = await fetchFn(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: ++id, method, params }),
+      body: JSON.stringify(payload),
     });
-    const body = await res.json();
+    return res.json();
+  };
+  const rpc: Rpc = async (method, params = []) => {
+    onCall?.(method);
+    const body = await post({ jsonrpc: "2.0", id: ++id, method, params });
     if (body.error) throw new RpcError(method, body.error.code, body.error.message);
     return body.result;
   };
+  rpc.batch = async (calls) => {
+    if (calls.length === 0) return [];
+    for (const [m] of calls) onCall?.(m);
+    const first = id + 1;
+    const body: any[] = await post(calls.map(([method, params]) => ({ jsonrpc: "2.0", id: ++id, method, params })));
+    const byId = new Map(body.map((r) => [r.id, r]));
+    return calls.map(([method], i) => {
+      const r = byId.get(first + i);
+      if (!r || r.error) throw new RpcError(method, r?.error?.code ?? -1, r?.error?.message ?? "missing from batch reply");
+      return r.result;
+    });
+  };
+  return rpc;
 }
 
 /** The ethrex node (reads, ordinary txs) and the Skandha alt-mempool (frame txs). */
@@ -82,16 +101,20 @@ export interface PoolInfo {
   fromBlock: bigint;
 }
 
-const call = async (rpc: Rpc, to: Hex, fn: string, args: unknown[] = []): Promise<Hex> =>
-  rpc("eth_call", [{ to, data: encodeFunctionData({ abi: POOL_ABI, functionName: fn as never, args: args as never }) }, "latest"]);
-
 export async function readPool(rpc: Rpc, address: Hex, fromBlock = 0n): Promise<PoolInfo> {
-  const chainId = Number(await rpc("eth_chainId"));
-  const noteSeq = BigInt(await call(rpc, address, "noteSeq"));
-  const rung = BigInt(await call(rpc, address, "rung"));
+  const ethCall = (fn: string, args: unknown[] = []): [string, unknown[]] => [
+    "eth_call",
+    [{ to: address, data: encodeFunctionData({ abi: POOL_ABI, functionName: fn as never, args: args as never }) }, "latest"],
+  ];
+  const calls: [string, unknown[]][] = [["eth_chainId", []], ethCall("noteSeq"), ethCall("rung"), ...LADDER.map((d) => ethCall("mintPubkeys", [d]))];
+  // One round trip when the transport batches; seven otherwise.
+  const out = rpc.batch ? await rpc.batch(calls) : await Promise.all(calls.map(([m, p]) => rpc(m, p)));
+  const chainId = Number(out[0]);
+  const noteSeq = BigInt(out[1]);
+  const rung = BigInt(out[2]);
   const pubkeys = new Map<string, Uint8Array>();
-  for (const d of LADDER) {
-    const raw = await call(rpc, address, "mintPubkeys", [d]);
+  for (const [i, d] of LADDER.entries()) {
+    const raw: Hex = out[3 + i];
     // ABI-encoded `bytes`: offset, length, data.
     const len = Number(BigInt(`0x${raw.slice(66, 130)}`));
     if (len === 128) pubkeys.set(d.toString(), fromHex(`0x${raw.slice(130, 130 + 256)}`));
@@ -143,10 +166,14 @@ export async function sync(rpc: Rpc, pool: PoolInfo, wallet: Wallet): Promise<{ 
   const announced = new Map<string, any>();
   for (const a of await logs(rpc, pool, "Announced")) announced.set(a.id.toString(), a);
 
-  const mine = new Map<string, number>();
+  // Deriving a blinded point is a hash-to-curve and a scalar multiplication. Keep them for
+  // the session, so each sync only derives counters it hasn't seen.
+  const cacheKey = `${wallet.seed}|${pool.chainId}|${pool.address.toLowerCase()}`;
+  const points = derived.get(cacheKey) ?? new Map<string, number>();
+  derived.set(cacheKey, points);
   let horizon = wallet.next + GAP;
   const derive = (upTo: number) => {
-    for (let i = mine.size; i < upTo; i++) mine.set(blindedPoint(wallet.seed, i, domainOf(pool)).blinded.toLowerCase(), i);
+    for (let i = points.size; i < upTo; i++) points.set(blindedPoint(wallet.seed, i, domainOf(pool)).blinded.toLowerCase(), i);
   };
   derive(horizon);
 
@@ -154,7 +181,7 @@ export async function sync(rpc: Rpc, pool: PoolInfo, wallet: Wallet): Promise<{ 
   const added: Note[] = [];
   let pending = 0;
   for (const d of deposited) {
-    const ours = (d.blindedPoints as Hex[]).map((p) => mine.get(p.toLowerCase()));
+    const ours = (d.blindedPoints as Hex[]).map((p) => points.get(p.toLowerCase()));
     if (ours.every((i) => i === undefined)) continue;
     const top = Math.max(...ours.filter((i): i is number => i !== undefined));
     if (top + 1 > wallet.next) wallet.next = top + 1;
@@ -180,15 +207,31 @@ export async function sync(rpc: Rpc, pool: PoolInfo, wallet: Wallet): Promise<{ 
       added.push(note);
     }
   }
-  for (const n of wallet.notes) if (!n.spent) n.spent = await isSpent(rpc, pool, n);
+  await markSpent(rpc, pool, wallet.notes.filter((n) => !n.spent));
   return { added, pending };
+}
+
+const derived = new Map<string, Map<string, number>>();
+
+function spentSlot(pool: PoolInfo, note: Note): Hex {
+  const key = noteKey(pool.chainId, pool.address, BigInt(note.denom), note.address);
+  return keccak256(concat([pad(pool.address), pad(toHex(key))]));
 }
 
 /** A note is spent once its nonce key has left sequence 0 in NONCE_MANAGER. */
 export async function isSpent(rpc: Rpc, pool: PoolInfo, note: Note): Promise<boolean> {
-  const key = noteKey(pool.chainId, pool.address, BigInt(note.denom), note.address);
-  const slot = keccak256(concat([pad(pool.address), pad(toHex(key))]));
-  return BigInt(await rpc("eth_getStorageAt", [NONCE_MANAGER, slot, "latest"])) !== 0n;
+  return BigInt(await rpc("eth_getStorageAt", [NONCE_MANAGER, spentSlot(pool, note), "latest"])) !== 0n;
+}
+
+/** Check many notes in one batched request when the transport supports it. */
+async function markSpent(rpc: Rpc, pool: PoolInfo, notes: Note[]): Promise<void> {
+  if (notes.length === 0) return;
+  if (rpc.batch) {
+    const out = await rpc.batch(notes.map((n) => ["eth_getStorageAt", [NONCE_MANAGER, spentSlot(pool, n), "latest"]]));
+    notes.forEach((n, i) => (n.spent = BigInt(out[i]) !== 0n));
+    return;
+  }
+  for (const n of notes) n.spent = await isSpent(rpc, pool, n);
 }
 
 export const balance = (w: Wallet): bigint => w.notes.filter((n) => !n.spent).reduce((s, n) => s + BigInt(n.denom), 0n);
